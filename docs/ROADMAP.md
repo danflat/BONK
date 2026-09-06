@@ -8,16 +8,21 @@
 - [x] Preserve the FLARM BLE UUID contract and prioritize telemetry.
 - [x] Add a BONK-branded boot-state model.
 - [x] Hard-disable ADS-B Out and document its boundary.
+- [x] Preserve the exact working MicroPython firmware as a public baseline.
+- [x] Port the working GPS/FLARM/BLE/OLED bridge to Arduino C++.
 - [ ] Run the same tests against recorded timing traces from target hardware.
 
 ## Phase 1 — select and bring up hardware
 
-- [ ] Record the exact ESP32-S3 board revision, SX126x part, oscillator, RF
-  switch, TCXO, GNSS, display, and power pins.
-- [ ] Add a checked-in PlatformIO or ESP-IDF target after board selection.
-- [ ] Implement the monotonic microsecond clock and watchdog adapters.
-- [ ] Implement SX126x abort, IRQ drain, retune, and ownership handoff.
-- [ ] Render every splash state on the real display.
+- [x] Select the Heltec WiFi LoRa 32 V3 / ESP32-S3 / SX1262 target.
+- [x] Record working GPS, external FLARM, OLED, battery, button, and onboard
+  SX1262 pins.
+- [x] Add a checked-in PlatformIO Arduino target.
+- [x] Use the ESP32 monotonic 64-bit microsecond timer in the Arduino adapter.
+- [ ] Add the hardware watchdog and persistent reset-reason reporting.
+- [ ] Implement SX1262 abort, IRQ drain, and ownership handoff in the
+  Meshtastic adapter.
+- [x] Implement every splash state in the Heltec V3 display adapter.
 
 Exit criterion: repeatable radio handoff timing, including worst-case latency,
 is measured on hardware and fits inside the configured guard.

@@ -1,10 +1,15 @@
 # BONK vNext architecture
 
-## One physical radio, one safety rule
+## Two radio paths, one priority rule
 
-The first reference target is an ESP32-S3-class controller with an SX126x-class
-LoRa radio. FLARM and Meshtastic therefore cannot touch the radio concurrently.
-`RadioArbiter` is the sole authority allowed to grant radio time.
+The working Heltec V3 device receives FLARM data from an external unit over
+UART 2. Meshtastic will use the Heltec's onboard SX1262. They are physically
+separate radio paths, but they still compete for MCU time, SPI/IRQ servicing,
+BLE bandwidth, and application queues. BONK's rule remains absolute: FLARM
+activity may suspend mesh work; mesh may never delay FLARM processing.
+
+`RadioArbiter` is the execution gate for latency-sensitive work. For the future
+Meshtastic adapter, its leases also control ownership of the onboard SX1262.
 
 | Client | Priority | Lease behavior |
 |---|---:|---|
@@ -12,9 +17,10 @@ LoRa radio. FLARM and Meshtastic therefore cannot touch the radio concurrently.
 | Meshtastic TX | Background | Granted only when the entire calculated packet airtime fits. |
 | Meshtastic RX | Background | Clipped to the configured maximum and next FLARM guard. |
 
-The arbiter protects a FLARM interval with both a pre-guard and post-guard. A
-radio handoff allowance is included so the hardware adapter can stop the mesh
-stack, clear IRQ state, retune, and settle before the FLARM deadline.
+When future FLARM timing is known, the arbiter protects it with both a pre-guard
+and post-guard. A handoff allowance lets the adapter stop the mesh stack and
+drain pending IRQ work before the FLARM deadline. Unscheduled UART traffic is
+treated as urgent foreground activity as soon as it arrives.
 
 ```mermaid
 stateDiagram-v2
@@ -31,19 +37,24 @@ allowed to resume. A stale or missing schedule fails safe by withholding mesh.
 
 ## Portable core
 
-The code in `include/bonk` and `src` has no Arduino, ESP-IDF, FreeRTOS, radio,
-display, BLE, or heap dependency. This is intentional: safety invariants can be
-tested on every commit and reused by either an Arduino or ESP-IDF adapter.
+The portable files in `include/bonk` and `src` have no Arduino, ESP-IDF,
+FreeRTOS, radio, display, BLE, or heap dependency. This is intentional: safety
+invariants can be tested on every commit and reused by either an Arduino or
+ESP-IDF adapter.
+
+The exception is the compile-guarded board entry point
+`src/heltec_v3_main.cpp`. Native builds omit its body; PlatformIO enables it with
+`ARDUINO` and `BONK_HELTEC_V3`.
 
 ### Radio path
 
 1. The FLARM scheduler publishes its next reserved interval.
 2. Meshtastic proposes a receive dwell or complete transmit plan.
 3. `MeshtasticGate` calculates worst-case LoRa airtime and asks the arbiter.
-4. The hardware adapter waits until `not_before_us`, owns the radio until
+4. The mesh adapter waits until `not_before_us`, owns the SX1262 until
    `expires_at_us`, and releases early when possible.
-5. Any FLARM request revokes mesh. The adapter must make cancellation of the
-   active mesh operation synchronous before starting FLARM radio work.
+5. Any FLARM foreground request revokes mesh. The adapter must make cancellation
+   synchronous before continuing lower-priority mesh work.
 
 Lease tokens prevent a late completion callback from releasing a newer owner's
 lease.
@@ -66,8 +77,8 @@ deferred; the mux controls application egress priority, not the BLE controller.
 ### Boot display
 
 `makeSplashFrame` provides display-independent product, status, and progress
-text. The ESP32-S3 display adapter is responsible for layout and rendering. A
-safe-hold or radio fault must remain visually distinct from a ready state.
+text. The Heltec V3 Arduino entry point now renders every stage on its SSD1306.
+A safe-hold or radio fault remains visually distinct from a ready state.
 
 ## Failure policy
 

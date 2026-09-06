@@ -1,8 +1,9 @@
 # Upstream provenance
 
-The initial BONK vNext control-plane code was written for this repository and
-does not copy source from the projects below. They are relevant integration
-candidates and historical references:
+The project owner's working `AirWhereS3-danflat.py` firmware is preserved in
+`original/` with its SHA-256. The C++ port and initial BONK control-plane code
+were written for this repository and do not copy source from the third-party
+projects below. They are integration candidates and historical references:
 
 | Project | Relevance | License observed during initial review |
 |---|---|---|

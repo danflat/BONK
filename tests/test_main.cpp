@@ -1,3 +1,4 @@
+#include "bonk/airwhere_bridge.hpp"
 #include "bonk/ble_tx_mux.hpp"
 #include "bonk/features.hpp"
 #include "bonk/lora_airtime.hpp"
@@ -224,6 +225,43 @@ void testBleMuxPreservesFlarmPriority() {
     EXPECT_EQ(frame.channel, bonk::BleChannel::Meshtastic);
 }
 
+void testWorkingBridgeCompatibility() {
+    static_assert(bonk::HeltecV3Pins::gps_rx == 4);
+    static_assert(bonk::HeltecV3Pins::gps_tx == 5);
+    static_assert(bonk::HeltecV3Pins::flarm_rx == 6);
+    static_assert(bonk::HeltecV3Pins::flarm_tx == 7);
+    static_assert(bonk::HeltecV3Pins::oled_sda == 17);
+    static_assert(bonk::HeltecV3Pins::oled_scl == 18);
+    static_assert(bonk::HeltecV3Pins::vext == 36);
+    static_assert(bonk::HeltecV3Pins::battery_adc == 1);
+    static_assert(bonk::HeltecV3Pins::adc_control == 37);
+    static_assert(bonk::HeltecV3Pins::program_button == 0);
+    static_assert(bonk::kGpsBaud == 9'600);
+    static_assert(bonk::kFlarmBaud == 57'600);
+
+    constexpr std::uint8_t pflau[] =
+        "$PFLAU,12,1,2,1,0,,0,,,,*00\r\n";
+    std::uint16_t count = 0;
+    EXPECT_TRUE(bonk::parsePflauTargetCount(
+        pflau, sizeof(pflau) - 1, count));
+    EXPECT_EQ(count, std::uint16_t{12});
+
+    constexpr std::uint8_t embedded[] =
+        "noise$PFLAU,3,1,2,1,0,,0,,,,*00\n";
+    EXPECT_TRUE(bonk::parsePflauTargetCount(
+        embedded, sizeof(embedded) - 1, count));
+    EXPECT_EQ(count, std::uint16_t{3});
+
+    constexpr std::uint8_t malformed[] = "$PFLAU,3x,1\n";
+    EXPECT_FALSE(bonk::parsePflauTargetCount(
+        malformed, sizeof(malformed) - 1, count));
+    EXPECT_FALSE(bonk::parsePflauTargetCount(nullptr, 0, count));
+
+    EXPECT_EQ(bonk::batteryPercentFromAdc(0, 4095), std::uint8_t{0});
+    EXPECT_EQ(bonk::batteryPercentFromAdc(4095, 4095), std::uint8_t{100});
+    EXPECT_EQ(bonk::batteryPercentFromAdc(100, 0), std::uint8_t{0});
+}
+
 void testBleOverflowPolicies() {
     bonk::BleTxMux flarm_mux{};
     for (std::size_t index = 0; index <= bonk::BleTxMux::kQueueDepth; ++index) {
@@ -273,6 +311,7 @@ int main() {
     testMeshEnableSwitchRevokesMesh();
     testLoRaAirtimeAndMeshtasticGate();
     testBleMuxPreservesFlarmPriority();
+    testWorkingBridgeCompatibility();
     testBleOverflowPolicies();
     testSplashAndFeaturePolicy();
 
