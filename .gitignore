@@ -48,7 +48,8 @@ build-*/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-Makefile
+# The repository's native test harness is intentionally tracked.
+!/Makefile
 install_manifest.txt
 compile_commands.json
 
