@@ -7,7 +7,7 @@
 - [x] Bound Meshtastic RX and validate complete TX airtime.
 - [x] Preserve the FLARM BLE UUID contract and prioritize telemetry.
 - [x] Add a BONK-branded boot-state model.
-- [x] Hard-disable ADS-B Out and document its boundary.
+- [x] Hard-disable direct ADS-B Out RF and document its boundary.
 - [x] Preserve the exact working MicroPython firmware as a public baseline.
 - [x] Port the working GPS/FLARM/BLE/OLED bridge to Arduino C++.
 - [ ] Run the same tests against recorded timing traces from target hardware.
@@ -50,7 +50,36 @@ watchdog resets.
 Exit criterion: randomized and hardware-in-the-loop stress tests observe zero
 mesh ownership inside protected FLARM intervals.
 
-## Phase 4 — hardening and field evaluation
+## Phase 4 — TABS electronic conspicuity
+
+Goal: make the paraglider electronically visible to nearby aircraft through a
+supported external aviation transmitter without turning BONK itself into an
+uncertified ADS-B/TABS RF device.
+
+- [x] Select external TABS / approved 1090ES as the U.S. architecture.
+- [x] Add a device-neutral `TabsTransport` firmware contract.
+- [x] Keep direct ADS-B/UAT/1090ES encoding and RF permanently disabled in BONK.
+- [ ] Resolve the lawful identity/configuration path for the intended Part 103
+  paraglider operation.
+- [ ] Select a currently purchasable lightweight transmitter with documented
+  integration interfaces.
+- [ ] Select the required pressure-altitude source.
+- [ ] Select/validate the required GNSS integrity source.
+- [ ] Design the 1090 MHz antenna/feedline/body-shadowing installation.
+- [ ] Design an independently protected power path and brownout behavior.
+- [ ] Implement the selected manufacturer's serial/control driver.
+- [ ] Add simulated fault tests for stale position, invalid identity, encoder
+  failure, transport loss, low voltage, and transmitter-disable behavior.
+- [ ] Perform bench integration using manufacturer-approved/dummy-load test
+  procedures before any radiated testing.
+
+See `docs/TABS_CONSPICUITY.md` for blockers and acceptance criteria.
+
+Exit criterion: a supported external device has a validated identity,
+installation, power, antenna, navigation/altitude source, and fail-closed BONK
+control path, with the regulatory path documented for the intended operation.
+
+## Phase 5 — hardening and field evaluation
 
 - [ ] Persist fault counters and timing high-water marks.
 - [ ] Add brownout, GNSS-loss, BLE-congestion, and clock-fault tests.
@@ -58,11 +87,11 @@ mesh ownership inside protected FLARM intervals.
 - [ ] Publish supported hardware, configuration, and rollback instructions.
 - [ ] Complete an independent safety and regulatory review.
 
-## Later — traffic integrations
+## Later — traffic receive integrations
 
-- [ ] Evaluate receive-only traffic sources separately from transmit features.
-- [ ] Define a data-only interface to compliant ADS-B Out equipment if a real
-  operational need and lawful installation path exist.
-- [ ] Keep all direct ADS-B Out encoding/RF transmission outside BONK firmware.
+- [ ] Evaluate receive-only ADS-B traffic sources separately from transmit
+  features.
+- [ ] Keep received traffic logically separate from FLARM-originated traffic and
+  preserve source/integrity metadata.
 
 The roadmap is ordered. A checked box is not a certification claim.
