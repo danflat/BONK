@@ -1,33 +1,52 @@
-# ADS-B Out policy
+# ADS-B / TABS Out policy
 
-ADS-B Out is a roadmap item, not an enabled BONK feature.
+BONK does **not** implement or enable an ADS-B/TABS RF transmitter on the
+ESP32-S3/SX1262 hardware.
 
 `include/bonk/features.hpp` pins `BONK_ENABLE_ADSB_OUT` to zero with a
-compile-time assertion. This repository contains no ADS-B message encoder,
-1090 MHz or UAT modulator, RF driver, or configuration path that can turn BONK
-into an ADS-B Out transmitter.
+compile-time assertion. The repository contains no 1090ES or UAT modulator, no
+ADS-B packet encoder intended for over-the-air transmission, and no software
+path that turns the Heltec board into aviation surveillance RF equipment.
 
-## Why the boundary is strict
+## U.S. project direction
 
-ADS-B Out broadcasts aircraft identity, position, altitude, and velocity for
-surveillance. Installation, equipment performance, identifiers, and operating
-rules depend on jurisdiction and airspace. In the United States, the FAA's
-[ADS-B frequently asked questions](https://www.faa.gov/air_traffic/technology/equipadsb/resources/faq)
-are the starting point; they do not make a home-built firmware transmitter an
-approved installation.
+The preferred U.S. electronic-conspicuity path is an **external TSO-C199 Traffic
+Awareness Beacon System (TABS)** or other appropriately approved 1090ES unit.
+FAA guidance describes TABS as voluntary equipage for aircraft otherwise exempt
+from transponder/ADS-B requirements; TABS can make the aircraft electronically
+visible to airborne collision-avoidance systems, traffic advisory systems, and
+ADS-B In receivers.
 
-## Permitted future shape
+That purpose aligns with BONK's mission better than attempting to duplicate a
+full conventional GA ADS-B Out installation inside hobby firmware.
 
-A future BONK integration may produce navigation/traffic data for an external,
-compliant ADS-B Out installation through a documented data interface. That work
-must include:
+See [`TABS_CONSPICUITY.md`](TABS_CONSPICUITY.md) for the candidate hardware,
+blockers, and acceptance criteria.
 
-1. A named jurisdiction and intended aircraft/operation.
-2. Review by appropriately qualified avionics and regulatory specialists.
-3. An explicit approved-equipment boundary: BONK does not generate RF.
-4. Interface validation, stale-data rejection, integrity/status propagation,
-   and a loss-of-link safe state.
-5. No shared-radio scheduling path with FLARM or Meshtastic.
+## Boundary
 
-Receive-only ADS-B traffic ingestion is a separate possible feature and must not
-be described as ADS-B Out.
+BONK may integrate with external equipment through a documented serial/control
+interface. That integration must include:
+
+1. A named jurisdiction and intended vehicle/operation.
+2. A supported external device with current approval/interface documentation.
+3. A valid, non-invented identity/configuration path.
+4. Device-owned RF generation, squitter timing, pressure-altitude handling, and
+   required navigation-integrity logic.
+5. Stale-data rejection, health/status propagation, explicit transmitter
+   enable/disable, and a loss-of-link safe state.
+6. Separate power/RF/antenna design from the FLARM and Meshtastic radios.
+
+The device-neutral firmware contract is
+[`include/bonk/tabs_interface.hpp`](../include/bonk/tabs_interface.hpp).
+
+## Important distinction
+
+TABS voluntary equipage is not the same thing as a rule-compliant ADS-B Out
+installation for airspace where 14 CFR 91.225/91.227 compliance is required.
+Portable/transmitting aviation equipment outside the TSO-C199 exception must
+not be treated as legal merely because it can produce a technically valid
+signal.
+
+Receive-only ADS-B traffic ingestion remains a separate possible feature and
+must not be described as ADS-B Out.
