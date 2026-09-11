@@ -91,13 +91,28 @@ model before selecting it for a foot-launched system.
 
 ### B1 — legal/identity path for a Part 103 paraglider
 
-Open question: determine the correct lawful 24-bit/Mode-S/TABS identity and
-installation/configuration path for an unregistered Part 103 paraglider in the
-United States. BONK must not guess this value.
+This is now the primary regulatory blocker rather than a generic open question.
+FAA ADS-B guidance states that a valid ICAO/Mode-S aircraft address is required
+for normal ADS-B operation and that those addresses are assigned to aircraft.
+Urban Canyon's UC10x installation documentation likewise defines the Mode-S
+address as a 24-bit number issued by the aircraft registration authority.
 
-**Exit criterion:** written confirmation from the FAA/manufacturer or other
-qualified authoritative source that defines how the selected TABS device is
-identified and operated on the intended vehicle.
+A normal Part 103 paraglider is operated as an ultralight vehicle without an
+N-number/aircraft registration, so BONK cannot derive or invent a lawful 24-bit
+address from the existing operating status.
+
+At the same time, FAA AC 90-114C explicitly identifies TABS as voluntary
+electronic-conspicuity equipment for otherwise exempt aircraft. The unresolved
+question is therefore very narrow: **what identity/configuration path, if any,
+does the FAA and selected TABS manufacturer authorize for an unregistered Part
+103 paraglider?**
+
+Until that question has a written authoritative answer, BONK must keep external
+TABS transmit enable false on a Part 103 build.
+
+**Exit criterion:** written confirmation from the FAA and/or selected TABS
+manufacturer that defines the lawful identity/configuration and operating path
+for the intended Part 103 paraglider.
 
 ### B2 — purchasable lightweight TABS hardware
 
